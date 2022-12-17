@@ -1,5 +1,5 @@
 from flask import Flask, request
-from bs4 import BeautifulSoup
+from requests_html import HTMLSession
 
 import threading
 import time
@@ -20,6 +20,14 @@ class scraperThread(threading.Thread):
 
     def run(self):
         print("Starting thread " + self.name + " with search id = " + self.steamID)
+
+        session = HTMLSession()
+        r = session.get('https://www.protondb.com/app/' + self.steamID)
+        r.html.render()
+
+        #beautifulsoup wrapper for 
+        self.gameBadge = r.html.find("span", class_="MedalSummary__ExpandingSpan-sc-1fjwtnh-1 gjnWNf").text
+
         
 #/badge?ids=1,2,3,4
 @app.get('/badge')
@@ -37,8 +45,6 @@ def getBadges():
         t.join()
         print("Joined thread " + str(t.threadID))
         badges[t.steamID] = t.gameBadge
-
-    badges = {"123122" : "Platinum"}
 
     return json.dumps(badges)
 
